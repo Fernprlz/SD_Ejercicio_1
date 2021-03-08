@@ -6,7 +6,7 @@
 #include "mensaje.h"
 
 int main(void) {
-  mqd_t server_q;       
+  mqd_t server_q;
   mqd_t client_q;
 
 
@@ -24,7 +24,7 @@ int main(void) {
     perror("mq_open 1");
     return -1;
   }
-  server_q = mq_open("/SERVIDOR_SUMA3", O_WRONLY);
+  server_q = mq_open("/SERVIDOR_COLA_MENSAJES", O_WRONLY);
   if (server_q == -1){
     mq_close(client_q);
     perror("mq_open 2");
@@ -51,6 +51,6 @@ int main(void) {
 
   mq_close(server_q);
   mq_close(client_q);
-  mq_unlink("/CLIENTE_UNO");
+  mq_unlink(q_name);
   return 0;
 }

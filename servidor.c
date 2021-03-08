@@ -13,15 +13,6 @@
 #define MAX_THREADS 	10
 #define MAX_PETICIONES 	256
 
-// Variables de legibilidad de los servicios
-#define INIT 0
-#define SET 1
-#define GET 2
-#define MOD 3
-#define DEL 4
-#define EXIST 5
-#define ITEMS 6
-
 // Cola del servidor
 mqd_t server_q;
 
@@ -41,6 +32,41 @@ int fin = false;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// S E R V I C I O S ///////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+int init(){
+  // 1. destruir tuplas existentes
+  // 2. meter nuevo valor
+}
+
+int set_value(){
+  // 1. comprobar que existe
+  // 2. meter nuevo valor
+}
+
+int get_value(){
+  // 1. comprobar que existe
+  // 2. devolver nuevo valor
+}
+
+int modify_value(){
+  // 1. comprobar que existe
+  // 2. modificar valor
+}
+
+int delete_key(){
+  // 1. comprobar que existe
+  // 2. borrar elemento
+}
+
+int exists(){
+  // 1. buscar si existe
+}
+
+int num_items(){
+  // devolver el número de tuplas
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void servicio(void ){
@@ -101,8 +127,8 @@ void servicio(void ){
         res = num_items();
         break;
       default:
+        res = -1
         perror("Código de operación invalido")
-        //Error
         break;
     }
 
