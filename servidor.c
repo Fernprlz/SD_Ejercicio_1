@@ -4,9 +4,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include "request.h"
+#include "linked_list.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////// S E R V I C I O S ///////////////////////////////
+////////////////// V A R I A B L E S - G L O B A L E S  ////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 // Variables de control de capacidad del servidor
@@ -16,8 +17,11 @@
 // Cola del servidor
 mqd_t server_q;
 
+// Lista enlzada para guardar tuplas
+Linked_list list;
+
 // Variables del buffer de peticiones
-struct peticion buffer_peticiones[MAX_PETICIONES];
+struct request  buffer_peticiones[MAX_PETICIONES];
 int n_elementos;
 int pos = 0;
 
@@ -35,43 +39,90 @@ int fin = false;
 ////////////////////////////////////////////////////////////////////////////////
 
 int init(){
-  // 1. destruir tuplas existentes
-  // 2. meter nuevo valor
+  int result = init_list(&list);
+  return result;
 }
 
-int set_value(){
-  // 1. comprobar que existe
-  // 2. meter nuevo valor
+int set_value(char *key , char *v1, int *v2, float *v3){
+  int result;
+
+  if (exists(*key) == 0){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave ya existe.")
+    return -1;
+  }
+
+  result = set(&list, char *key , char *v1, int *v2, float *v3); // TODO: por ejemplo el &ist ese
+
+  return result;
 }
 
-int get_value(){
-  // 1. comprobar que existe
-  // 2. devolver nuevo valor
+int get_value(char *key , char *v1, int *v2, float *v3){
+  int result;
+
+  if (exists(*key) == -1){
+    printf("Error: la clave no existe.")
+    return -1;
+  }
+
+  result = get(list, char *key , char *v1, int *v2, float *v3);
+  if (result == -1){
+    printf("Error: clave no encontrada.");
+    return -1;
+  } else {
+    return 0;
+  }
+
 }
 
-int modify_value(){
-  // 1. comprobar que existe
-  // 2. modificar valor
+int modify_value(char *key , char *v1, int *v2, float *v3){
+  int result;
+
+  if (exists(*key) == -1){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave no existe.")
+    return -1;
+  }
+
+  result = mod(&list, char *key , char *v1, int *v2, float *v3);
+
+  //TODO: posibles casos de fallo: los valore sintroducidos son incorrectos.
+  if (result == -1){
+    printf("")
+    return -1;
+  }
 }
 
-int delete_key(){
-  // 1. comprobar que existe
-  // 2. borrar elemento
+int delete_key(char *key){
+  int result;
+
+  if (exists(*key) == 0){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave ya existe.")
+    return -1;
+  }
+
+  result = delete(&list, &key);
+
+  return result;
 }
 
-int exists(){
-  // 1. buscar si existe
+int exists(char *key){
+  return item_exist(list, key);
 }
 
 int num_items(){
-  // devolver el número de tuplas
+  if (list_size == NULL){
+    printf("Error: la lista no ha sido inicializada.\n");
+  } else {
+    return list_size;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//////////////// F U N C I O N - P A R A - T H R E A D S ///////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 void servicio(void ){
-  // Peticion local
-  struct peticion request;
+  // request  local
+  struct request req;
   // Cola del cliente
   mqd_t client_q;
   // Resultado del servicio
@@ -101,7 +152,7 @@ void servicio(void ){
 		pthread_cond_signal(&no_lleno);
 		pthread_mutex_unlock(&mutex);
 
-		// Procesado de la peticion
+		// Procesado de la request
 
 		/* ejecutar la petición del cliente y preparar respuesta */
     switch(request.op){
@@ -109,19 +160,19 @@ void servicio(void ){
         res = init();
         break;
       case SET:
-        res = set_value();
+        res = set_value(char *key, char *v1, int *v2, float *v3);
         break;
       case GET:
-        res = get_value();
+        res = get_value(char *key, char *v1, int *v2, float *v3);
         break;
       case MOD:
-        res = modify_value();
+        res = modify_value(char *key, char *v1, int *v2, float *v3);
         break;
       case DEL:
-        res = delete_key();
+        res = delete_key(char *key);
         break;
       case EXIST:
-        res = exist();
+        res = exist(char *key);
         break;
       case ITEMS:
         res = num_items();
@@ -153,10 +204,17 @@ int main(void) {
 	mqd_t server_q;
   struct mq_attr attr;
   attr.mq_maxmsg = 10;
-	attr.mq_msgsize = sizeof(struct peticion);
+	attr.mq_msgsize = sizeof(struct request );
 
-  // Peticion actual
-	struct peticion request;
+  // Lista enlazada para tuplas
+  int err = init_list(&list);
+  if (err == -1){
+    printf("Error creando la lista de tupals.")
+    return -1;
+  }
+
+  // request  actual
+  request req;
 
 	// Threads
 	pthread_attr_t t_attr;
@@ -165,7 +223,7 @@ int main(void) {
 	int pos = 0;
 
   // Inicialización de la cola del server
-  server_q = mq_open("/SERVIDOR_COLA_MENSAJES", O_CREAT|O_RDONLY, 0700, &attr);
+  server_q = mq_open("/server_q", O_CREAT|O_RDONLY, 0700, &attr);
 	if (server_q == -1) {
 		perror("Fallo al crear la cola del servidor");
 		return -1;
@@ -189,18 +247,18 @@ int main(void) {
   // Bucle de ejecución del servidor
 	while (true) {
     // Recepción de un request
-		error = mq_receive(server_q, (char *) &request, sizeof(struct peticion), 0);
+		error = mq_receive(server_q, (char *) &request, sizeof(struct request ), 0);
 		if (error == -1){
 			perror("Error en la recepción de un request");
 			break;
 		}
 
-    // Esperar a que se desocupe algun thread
+    // Esperar a que se desocupe un lugar en el buffer
 		pthread_mutex_lock(&mutex);
 		while (n_elementos == MAX_PETICIONES){
       pthread_cond_wait(&no_lleno, &mutex);
     }
-		buffer_peticiones[pos] = request; // Recibe la peticion en la cola de peticiones
+		buffer_peticiones[pos] = request; // Recibe la request  en el buffer de peticiones
 		pos = (pos + 1) % MAX_PETICIONES; // Mueve el puntero de posición del buffer de peticiones al siguiente hueco libre
 		n_elementos++;
 		pthread_cond_signal(&no_vacio); // Avisa al resto de threads parados por el cond_wait

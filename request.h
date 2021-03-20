@@ -1,0 +1,15 @@
+#define MAXSIZE	256
+enum opcode {INIT, SET, GET, MOD, DEL ,EXIST, ITEMS}
+
+struct request_struct  {
+	int op;
+
+  char key[MAXSIZE];
+  char v1[MAXSIZE];
+  int v2;
+  float v3;
+
+	char q_name[MAXSIZE];
+};
+
+typedef request_struct *request;
