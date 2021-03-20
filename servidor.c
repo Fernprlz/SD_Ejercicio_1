@@ -67,6 +67,7 @@ int get_value(char *key , char *v1, int *v2, float *v3){
   result = get(list, char *key , char *v1, int *v2, float *v3);
   if (result == -1){
     printf("Error: clave no encontrada.");
+     // esta parte no llega a ejecutarse porque si no se encuentra se sale en la comprobacion de arriba
     return -1;
   } else {
     return 0;
@@ -94,8 +95,8 @@ int modify_value(char *key , char *v1, int *v2, float *v3){
 int delete_key(char *key){
   int result;
 
-  if (exists(*key) == 0){ // TODO Estoy pasando las variables adecuadamente?
-    printf("Error: la clave ya existe.")
+  if (exists(*key) == -1){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave no existe.")
     return -1;
   }
 
@@ -172,7 +173,7 @@ void servicio(void ){
         res = delete_key(char *key);
         break;
       case EXIST:
-        res = exist(char *key);
+        res = exist();
         break;
       case ITEMS:
         res = num_items();
@@ -204,7 +205,7 @@ int main(void) {
 	mqd_t server_q;
   struct mq_attr attr;
   attr.mq_maxmsg = 10;
-	attr.mq_msgsize = sizeof(struct request );
+	attr.mq_msgsize = sizeof(request);
 
   // Lista enlazada para tuplas
   int err = init_list(&list);
