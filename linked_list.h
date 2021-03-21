@@ -74,9 +74,9 @@ int set(Linked_list *l, char *key , char *v1, int v2, float v3){
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-int get(Linked_list l, char *key , char *v1, int *v2, float *v3){
+int get(Linked_list *l, char *key , char *v1, int *v2, float *v3){
   Linked_list aux;
-  aux = l;
+  aux = *l;
   // Busqueda en la lista auxiliar, copia de la original
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
@@ -97,15 +97,15 @@ int get(Linked_list l, char *key , char *v1, int *v2, float *v3){
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-int mod(Linked_list *l, char *key , char *v1, int v2, float v3){
+int mod(Linked_list *l, char *key , char *v1, int *v2, float *v3){
   // Buscar el nodo con la clave deseada
   Linked_list aux;
   aux = *l;
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
       strcpy (aux -> v1, v1);
-      aux -> v2 = v2;
-      aux -> v3 = v3;
+      aux -> v2 = *v2;
+      aux -> v3 = *v3;
       // Encontrado
       return 0;
     } else {

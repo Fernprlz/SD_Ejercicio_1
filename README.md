@@ -11,3 +11,11 @@
 - [ ] Hacer el ```Makefile```.
 
 ### Preguntas:
+
+
+ - HACER UN TAR
+
+ - cliente.c
+ - servidorc
+
+ - makfile >> servidor.o // cliente + claves.so

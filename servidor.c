@@ -1,8 +1,8 @@
 #include <mqueue.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <pthread.h>
 #include "linked_list.h"
 
 #ifndef REQUEST_H
@@ -60,15 +60,16 @@ int exists(char *key){
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-int set_value(char *key , char *v1, int v2, float v3){
+int set_value(char *key , char *v1, int *v2, float *v3){
   int result;
 
-  if (exists(key) == 0){ // TODO Estoy pasando las variables adecuadamente?
+  if (exists(key) == 0){ 
     printf("Error: la clave ya existe.");
     return -1;
   }
 
-  result = set(&list, key, v1, v2, v3); // TODO: por ejemplo el &ist ese
+  // Obtenemos el valor de lo que contienen las direcciones v2, v3.
+  result = set(&list, key, v1, *v2, *v3); 
 
   return result;
 }
@@ -84,10 +85,13 @@ int get_value(char *key , char *v1, int *v2, float *v3){
     return -1;
   }
 
-  result = get(list, key, v1, v2, v3);
+  // Mandamos los punteros tal y como vienen, se utilizaran las direcciones que 
+  // contienen para guardar el resultado de la funcion
+  result = get(&list, key, v1, v2, v3);
   if (result == -1){
     printf("Error: clave no encontrada.");
      // esta parte no llega a ejecutarse porque si no se encuentra se sale en la comprobacion de arriba
+     // lo cual hace el código algo redundante.
     return -1;
   } else {
     return 0;
@@ -97,7 +101,7 @@ int get_value(char *key , char *v1, int *v2, float *v3){
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
-int modify_value(char *key , char *v1, int v2, float v3){
+int modify_value(char *key , char *v1, int *v2, float *v3){
   int result;
 
   if (exists(key) == -1){ // TODO Estoy pasando las variables adecuadamente?
@@ -107,7 +111,7 @@ int modify_value(char *key , char *v1, int v2, float v3){
 
   result = mod(&list, key, v1, v2, v3);
 
-  //TODO: posibles casos de fallo: los valore sintroducidos son incorrectos.
+  //TODO: posibles casos de fallo: los valores introducidos son incorrectos.
   /*if (result == -1){
     printf("")
     return -1;
@@ -121,7 +125,7 @@ int modify_value(char *key , char *v1, int v2, float v3){
 int delete_key(char *key){
   int result;
 
-  if (exists(key) == -1){ // TODO Estoy pasando las variables adecuadamente?
+  if (exists(key) == -1){ 
     printf("Error: la clave no existe.");
     return -1;
   }
@@ -186,7 +190,7 @@ void servicio(void ){
         res = init();
         break;
       case SET:
-        res = set_value(req -> key, req -> v1, &req -> v2, &req -> v3);
+        res = set_value(req -> key, req -> v1, req -> v2, req -> v3);
         break;
       case GET:
         res = get_value(req -> key, req -> v1, req -> v2, req -> v3);

@@ -54,10 +54,6 @@ int init(){
   // Elaboracion de la peticion
   request req;
   req -> op = INIT;
-  strcpy(req -> key, "\0");
-  strcpy(req -> v1, "\0");
-  req -> v2 = -1;
-  req -> v3 = -1.0;
   strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
@@ -98,9 +94,9 @@ int set_value(char *key, char *v1, int v2, float v3){
   request req;
   req -> op = SET;
   strcpy(req -> key, key);
-  strcpy(req -> v1, v1);
-  req -> v2 = v2;
-  req -> v3 = v3;
+  req -> v1 = v1;
+  req -> v2 = &v2;
+  req -> v3 = &v3;
   strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
@@ -186,8 +182,8 @@ int modify_value(char *key, char *v1, int v2, float v3){
   req -> op = MOD;
   strcpy(req -> key, key);
   strcpy(req -> v1, v1);
-  req -> v2 = v2;
-  req -> v3 = v3;
+  req -> v2 = &v2;
+  req -> v3 = &v3;
   strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
