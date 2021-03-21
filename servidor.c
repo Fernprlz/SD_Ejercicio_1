@@ -3,8 +3,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include "request.h"
 #include "linked_list.h"
+
+#ifndef REQUEST_H
+  #define REQUEST_H
+  #include "request.h"
+#endif
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////// V A R I A B L E S - G L O B A L E S  ////////////////////////
@@ -21,7 +27,7 @@ mqd_t server_q;
 Linked_list list;
 
 // Variables del buffer de peticiones
-struct request  buffer_peticiones[MAX_PETICIONES];
+request buffer_peticiones[MAX_PETICIONES];
 int n_elementos;
 int pos = 0;
 
@@ -43,28 +49,42 @@ int init(){
   return result;
 }
 
-int set_value(char *key , char *v1, int *v2, float *v3){
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+
+int exists(char *key){
+  return item_exist(list, key);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+int set_value(char *key , char *v1, int v2, float v3){
   int result;
 
-  if (exists(*key) == 0){ // TODO Estoy pasando las variables adecuadamente?
-    printf("Error: la clave ya existe.")
+  if (exists(key) == 0){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave ya existe.");
     return -1;
   }
 
-  result = set(&list, char *key , char *v1, int *v2, float *v3); // TODO: por ejemplo el &ist ese
+  result = set(&list, key, v1, v2, v3); // TODO: por ejemplo el &ist ese
 
   return result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 int get_value(char *key , char *v1, int *v2, float *v3){
   int result;
 
-  if (exists(*key) == -1){
-    printf("Error: la clave no existe.")
+  if (exists(key) == -1){
+    printf("Error: la clave no existe.");
     return -1;
   }
 
-  result = get(list, char *key , char *v1, int *v2, float *v3);
+  result = get(list, key, v1, v2, v3);
   if (result == -1){
     printf("Error: clave no encontrada.");
      // esta parte no llega a ejecutarse porque si no se encuentra se sale en la comprobacion de arriba
@@ -72,49 +92,54 @@ int get_value(char *key , char *v1, int *v2, float *v3){
   } else {
     return 0;
   }
-
 }
 
-int modify_value(char *key , char *v1, int *v2, float *v3){
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+int modify_value(char *key , char *v1, int v2, float v3){
   int result;
 
-  if (exists(*key) == -1){ // TODO Estoy pasando las variables adecuadamente?
-    printf("Error: la clave no existe.")
+  if (exists(key) == -1){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave no existe.");
     return -1;
   }
 
-  result = mod(&list, char *key , char *v1, int *v2, float *v3);
+  result = mod(&list, key, v1, v2, v3);
 
   //TODO: posibles casos de fallo: los valore sintroducidos son incorrectos.
-  if (result == -1){
+  /*if (result == -1){
     printf("")
     return -1;
-  }
+  }*/
+  return result;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 int delete_key(char *key){
   int result;
 
-  if (exists(*key) == -1){ // TODO Estoy pasando las variables adecuadamente?
-    printf("Error: la clave no existe.")
+  if (exists(key) == -1){ // TODO Estoy pasando las variables adecuadamente?
+    printf("Error: la clave no existe.");
     return -1;
   }
 
-  result = delete(&list, &key);
+  result = delete(&list, key);
 
   return result;
 }
 
-int exists(char *key){
-  return item_exist(list, key);
-}
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 int num_items(){
-  if (list_size == NULL){
+  if (list_size == -1){
     printf("Error: la lista no ha sido inicializada.\n");
-  } else {
-    return list_size;
-  }
+  } 
+  
+  return list_size;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -123,7 +148,7 @@ int num_items(){
 
 void servicio(void ){
   // request  local
-  struct request req;
+  request req;
   // Cola del cliente
   mqd_t client_q;
   // Resultado del servicio
@@ -145,7 +170,7 @@ void servicio(void ){
 		}
 
     // Recoger la petición del buffer
-		request = buffer_peticiones[pos];
+		req = buffer_peticiones[pos];
     // Cambia el puntero de buffer
 		pos = (pos + 1) % MAX_PETICIONES;
 		n_elementos--;
@@ -156,36 +181,36 @@ void servicio(void ){
 		// Procesado de la request
 
 		/* ejecutar la petición del cliente y preparar respuesta */
-    switch(request.op){
+    switch(req -> op){
       case INIT:
         res = init();
         break;
       case SET:
-        res = set_value(char *key, char *v1, int *v2, float *v3);
+        res = set_value(req -> key, req -> v1, &req -> v2, &req -> v3);
         break;
       case GET:
-        res = get_value(char *key, char *v1, int *v2, float *v3);
+        res = get_value(req -> key, req -> v1, req -> v2, req -> v3);
         break;
       case MOD:
-        res = modify_value(char *key, char *v1, int *v2, float *v3);
+        res = modify_value(req -> key, req -> v1, req -> v2, req -> v3);
         break;
       case DEL:
-        res = delete_key(char *key);
+        res = delete_key(req -> key);
         break;
       case EXIST:
-        res = exist();
+        res = exists(req -> key);
         break;
       case ITEMS:
         res = num_items();
         break;
       default:
-        res = -1
-        perror("Código de operación invalido")
+        res = -1;
+        perror("Código de operación invalido");
         break;
     }
 
 		// Respuesta a la cola del cliente
-		client_q = mq_open(request.q_name, O_WRONLY);
+		client_q = mq_open(req -> q_name, O_WRONLY);
 		if (client_q == -1)
 			perror("No se puede abrir la cola del cliente");
 		else {
@@ -210,7 +235,7 @@ int main(void) {
   // Lista enlazada para tuplas
   int err = init_list(&list);
   if (err == -1){
-    printf("Error creando la lista de tupals.")
+    printf("Error creando la lista de tupals.");
     return -1;
   }
 
@@ -248,7 +273,7 @@ int main(void) {
   // Bucle de ejecución del servidor
 	while (true) {
     // Recepción de un request
-		error = mq_receive(server_q, (char *) &request, sizeof(struct request ), 0);
+		error = mq_receive(server_q, (char *) &req, sizeof(request), 0);
 		if (error == -1){
 			perror("Error en la recepción de un request");
 			break;
@@ -259,7 +284,7 @@ int main(void) {
 		while (n_elementos == MAX_PETICIONES){
       pthread_cond_wait(&no_lleno, &mutex);
     }
-		buffer_peticiones[pos] = request; // Recibe la request  en el buffer de peticiones
+		buffer_peticiones[pos] = req; // Recibe la request  en el buffer de peticiones
 		pos = (pos + 1) % MAX_PETICIONES; // Mueve el puntero de posición del buffer de peticiones al siguiente hueco libre
 		n_elementos++;
 		pthread_cond_signal(&no_vacio); // Avisa al resto de threads parados por el cond_wait

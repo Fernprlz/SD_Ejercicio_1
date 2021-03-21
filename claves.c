@@ -8,16 +8,23 @@
 int comm_up = 0;
 mqd_t server_q;
 mqd_t client_q;
+char client_q_name[MAXSIZE];
+
+/////////////////////////////////////////////////////////////////////
+//////////// C O N E C T A R - A L - S E R V I D O R ////////////////
+/////////////////////////////////////////////////////////////////////
 
 int init_comm(){
 
   // Atributos de la cola del cliente
+  struct mq_attr attr;
   attr.mq_maxmsg = 1;
   attr.mq_msgsize = sizeof(request);
+  
 
   // Nombre de la cola cliente = client-PID
-  sprintf(q_name,  "/client-%d", getpid());
-  client_q = mq_open(q_name, O_CREAT|O_RDONLY, 0700, &attr);
+  sprintf(client_q_name,  "/client-%d", getpid());
+  client_q = mq_open(client_q_name, O_CREAT|O_RDONLY, 0700, &attr);
   if (client_q == -1) {
     perror("Error estableciendo la comunicación con el servior: fallo en la cola del cliente.");
     return -1;
@@ -32,6 +39,10 @@ int init_comm(){
   return 0;
 }
 
+/////////////////////////////////////////////////////////////////////
+/////// F U N C I O N E S - V E C T O R - DE - T U P L A S //////////
+/////////////////////////////////////////////////////////////////////
+
 int init(){
   // Inicio de la comunicación
   if (comm_up == 0){
@@ -42,12 +53,12 @@ int init(){
 
   // Elaboracion de la peticion
   request req;
-  req.op = INIT;
-  req.key = NULL;
-  req.v3 = NULL;
-  req.v2 = NULL;
-  req.v3 = NULL;
-  strcpy(req.q_name, client_q);
+  req -> op = INIT;
+  strcpy(req -> key, "\0");
+  strcpy(req -> v1, "\0");
+  req -> v2 = -1;
+  req -> v3 = -1.0;
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -72,7 +83,10 @@ int init(){
   return res;
 }
 
-int set_value(char *key, char *v1, int *v2, float *v3){
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
+int set_value(char *key, char *v1, int v2, float v3){
   // Inicio de la comunicación
   if (comm_up == 0){
     if (init_comm() == -1){
@@ -82,12 +96,12 @@ int set_value(char *key, char *v1, int *v2, float *v3){
 
   // Elaboracion de la peticion
   request req;
-  req.op = SET;
-  req.key = *key;
-  req.v3 = *v1;
-  req.v2 = *v2;
-  req.v3 = *v3;
-  strcpy(req.q_name, client_q);
+  req -> op = SET;
+  strcpy(req -> key, key);
+  strcpy(req -> v1, v1);
+  req -> v2 = v2;
+  req -> v3 = v3;
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -112,6 +126,9 @@ int set_value(char *key, char *v1, int *v2, float *v3){
   }
 }
 
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+
 int get_value(char *key, char *v1, int *v2, float *v3){
   // Inicio de la comunicación
   if (comm_up == 0){
@@ -122,12 +139,12 @@ int get_value(char *key, char *v1, int *v2, float *v3){
 
   // Elaboracion de la peticion
   request req;
-  req.op = GET;
-  req.key = *key;
-  req.v3 = *v1;
-  req.v2 = *v2;
-  req.v3 = *v3;
-  strcpy(req.q_name, client_q);
+  req -> op = GET;
+  strcpy(req -> key, key);
+  req -> v1 = v1;
+  req -> v2 = v2;
+  req -> v3 = v3;
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -148,10 +165,13 @@ int get_value(char *key, char *v1, int *v2, float *v3){
     return -1;
   } else {
     printf("La tupla se ha leido correctamente:\n");
-    printf("- Clave: \"%s\"\n- V1: \"%s\"\n- V2: \"%d\"\n- V3: \"%f\"\n", *key, *v1, *v2, *v3);
+    printf("- Clave: \"%s\"\n- V1: \"%s\"\n- V2: \"%d\"\n- V3: \"%f\"\n", key, v1, *v2, *v3);
     return 0;
   }
 }
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 int modify_value(char *key, char *v1, int v2, float v3){
   // Inicio de la comunicación
@@ -163,12 +183,12 @@ int modify_value(char *key, char *v1, int v2, float v3){
 
   // Elaboracion de la peticion
   request req;
-  req.op = MOD;
-  req.key = *key;
-  req.v3 = *v1;
-  req.v2 = *v2;
-  req.v3 = *v3;
-  strcpy(req.q_name, client_q);
+  req -> op = MOD;
+  strcpy(req -> key, key);
+  strcpy(req -> v1, v1);
+  req -> v2 = v2;
+  req -> v3 = v3;
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -189,9 +209,13 @@ int modify_value(char *key, char *v1, int v2, float v3){
     return -1;
   } else {
     printf("La tupla se ha modificado correctamente:\n");
-    printf("- Clave: \"%s\"\n- V1: \"%s\"\n- V2: \"%d\"\n- V3: \"%f\"\n", *key, *v1, *v2, *v3);
+    printf("- Clave: \"%s\"\n- V1: \"%s\"\n- V2: \"%d\"\n- V3: \"%f\"\n", key, v1, v2, v3); // TODO testear a hacer un mod y un get a ver si es verdad.
     return 0;
+  }
 }
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 int delete_key(char *key){
   // Inicio de la comunicación
@@ -203,12 +227,9 @@ int delete_key(char *key){
 
   // Elaboracion de la peticion
   request req;
-  req.op = DEL;
-  req.key = *key;
-  req.v3 = NULL;
-  req.v2 = NULL;
-  req.v3 = NULL;
-  strcpy(req.q_name, client_q);
+  req -> op = DEL;
+  strcpy(req -> key, key);
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -230,7 +251,11 @@ int delete_key(char *key){
   } else {
     printf("La tupla se ha eliminado correctamente:\n");
     return 0;
+  }
 }
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 int exists(char *key){
   // Inicio de la comunicación
@@ -242,12 +267,9 @@ int exists(char *key){
 
   // Elaboracion de la peticion
   request req;
-  req.op = EXIST;
-  req.key = *key;
-  req.v3 = NULL;
-  req.v2 = NULL;
-  req.v3 = NULL;
-  strcpy(req.q_name, client_q);
+  req -> op = EXIST;
+  strcpy(req -> key, key);
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -269,7 +291,11 @@ int exists(char *key){
   } else {
     printf("La clave ya existe en la lista.\n");
     return 0;
+  }
 }
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 int num_items(){
   // Inicio de la comunicación
@@ -281,12 +307,8 @@ int num_items(){
 
   // Elaboracion de la peticion
   request req;
-  req.op = ITEMS;
-  req.key = NULL;
-  req.v3 = NULL;
-  req.v2 = NULL;
-  req.v3 = NULL;
-  strcpy(req.q_name, client_q);
+  req -> op = ITEMS;
+  strcpy(req -> q_name, client_q_name);
 
   // Envio de la peticion
   if (mq_send(server_q, (const char *) &req, sizeof(request), 0) < 0){
@@ -308,4 +330,5 @@ int num_items(){
   } else {
     printf("Actualmente hay %d tuplas en la lista.\n", res);
     return 0;
+  }
 }

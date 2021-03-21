@@ -1,7 +1,12 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include "request.h"
+
+#ifndef REQUEST_H
+  #define REQUEST_H
+  #include "request.h"
+#endif
+
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// V A R I A B L E S  /////////////////////////////////
@@ -30,6 +35,9 @@ int init_list (Linked_list *l) {
   list_size = 0;
   return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 int set(Linked_list *l, char *key , char *v1, int v2, float v3){
   // Adición de un nuevo nodo
@@ -63,13 +71,16 @@ int set(Linked_list *l, char *key , char *v1, int v2, float v3){
   return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
 int get(Linked_list l, char *key , char *v1, int *v2, float *v3){
   Linked_list aux;
   aux = l;
   // Busqueda en la lista auxiliar, copia de la original
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
-      strcpy (*v1, aux -> v1);
+      strcpy (v1, (char *) aux -> v1);
       *v2 = aux -> v2;
       *v3 = aux -> v3;
       // Encontrado
@@ -83,15 +94,18 @@ int get(Linked_list l, char *key , char *v1, int *v2, float *v3){
   return -1;
 }
 
-int mod(Linked_list *l, char *key , char *v1, int *v2, float *v3){
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+int mod(Linked_list *l, char *key , char *v1, int v2, float v3){
   // Buscar el nodo con la clave deseada
   Linked_list aux;
   aux = *l;
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
-      strcpy (aux -> v1, *v1);
-      aux -> v2 = *v2;
-      aux -> v3 = *v3;
+      strcpy (aux -> v1, v1);
+      aux -> v2 = v2;
+      aux -> v3 = v3;
       // Encontrado
       return 0;
     } else {
@@ -99,7 +113,12 @@ int mod(Linked_list *l, char *key , char *v1, int *v2, float *v3){
       aux = aux -> next;
     }
   }
+  // No encontrado
+  return -1;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 int printList (Linked_list l){
   Linked_list aux;
@@ -111,6 +130,9 @@ int printList (Linked_list l){
   }
   return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 /**
  * Las comprobaciones sobre la existencia de la clave se hacen en servidor.c TODO?
@@ -147,7 +169,12 @@ int delete (Linked_list *l, char *key){
       aux = aux -> next ;
     }
   }
+  // No encontrado
+  return -1;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 int item_exist(Linked_list l, char *key){
   Linked_list aux = l;
@@ -161,6 +188,9 @@ int item_exist(Linked_list l, char *key){
   }
   return -1;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 int destroy (Linked_list *l){
   Linked_list aux;
