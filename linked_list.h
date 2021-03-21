@@ -1,5 +1,7 @@
-# include < stdio .h >
-# include < stdlib .h >
+# include <stdio.h>
+# include <stdlib.h>
+# include <string.h>
+# include "request.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// V A R I A B L E S  /////////////////////////////////
@@ -17,7 +19,7 @@ struct Node {
 
 typedef struct Node *Linked_list;
 
-int list_size = NULL;
+int list_size = -1;
 
 ////////////////////////////////////////////////////////////////////////////////
 /////////////////////////// F U N C I O N E S  /////////////////////////////////
@@ -44,15 +46,17 @@ int set(Linked_list *l, char *key , char *v1, int v2, float v3){
   if (*l == NULL) {
     strcpy (ptr -> key, key);
     strcpy (ptr -> v1, v1);
-    ptr -> v2, v2;
-    ptr -> v3, v3;
+    ptr -> v2 = v2;
+    ptr -> v3 = v3;
     ptr -> next = NULL ;
     *l = ptr;
   } else {
     // insert in head
-    strcpy (ptr - >key , key );
-    ptr - > value = value ;
-    ptr - > next = *l;
+    strcpy (ptr -> key , key);
+    strcpy (ptr -> v1, v1);
+    ptr -> v2 = v2;
+    ptr -> v3 = v3;
+    ptr -> next = *l;
     *l = ptr;
   }
   list_size++;
@@ -65,15 +69,15 @@ int get(Linked_list l, char *key , char *v1, int *v2, float *v3){
   // Busqueda en la lista auxiliar, copia de la original
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
-      *v1 = aux -> v1;
+      strcpy (*v1, aux -> v1);
       *v2 = aux -> v2;
       *v3 = aux -> v3;
+      // Encontrado
+      return 0;
+    } else {
+      // Siguiente elemento
+      aux = aux -> next;
     }
-    // Encontrado
-    return 0;
-  } else {
-    // Siguiente elemento
-    aux = aux - > next;
   }
   // No Encontrado
   return -1;
@@ -82,18 +86,18 @@ int get(Linked_list l, char *key , char *v1, int *v2, float *v3){
 int mod(Linked_list *l, char *key , char *v1, int *v2, float *v3){
   // Buscar el nodo con la clave deseada
   Linked_list aux;
-  aux = l;
+  aux = *l;
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
-      aux -> v1 = *v1;
+      strcpy (aux -> v1, *v1);
       aux -> v2 = *v2;
       aux -> v3 = *v3;
+      // Encontrado
+      return 0;
+    } else {
+      // Siguiente elemento
+      aux = aux -> next;
     }
-    // Encontrado
-    return 0;
-  } else {
-    // Siguiente elemento
-    aux = aux - > next;
   }
 }
 
@@ -102,7 +106,7 @@ int printList (Linked_list l){
   aux = l;
   while (aux != NULL ){
     printf ("Key = \"%s\"\nV1 = \"%s\"\nV2 = %d\nV3 = %f\n", aux ->key, aux -> v1, aux -> v2, aux -> v3);
-    printf("----------------------\n")
+    printf("----------------------\n");
     aux = aux -> next ;
   }
   return 0;
@@ -122,9 +126,8 @@ int delete (Linked_list *l, char *key){
 
   // Borrar el primer nodo
   if (strcmp (key , (*l) -> key) == 0){
-
     aux = *l;
-    *l = (*l) - > next ;
+    *l = (*l) -> next ;
     free(aux);
     list_size--;
     return 0;
@@ -141,7 +144,7 @@ int delete (Linked_list *l, char *key){
       break;
     } else {
       back = aux;
-      aux = aux - > next ;
+      aux = aux -> next ;
     }
   }
 }
@@ -151,10 +154,10 @@ int item_exist(Linked_list l, char *key){
   while (aux != NULL) {
     if (strcmp (aux -> key , key) == 0){
       return 0;
-    }
-  } else {
+    } else {
     // Siguiente elemento
-    aux = aux - > next;
+    aux = aux -> next;
+    }
   }
   return -1;
 }
